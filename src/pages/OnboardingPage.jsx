@@ -1,13 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ClubChip from "../components/ClubChip";
-import { clubs } from "../data/clubs";
-import { getStudentProfile, updateStudentClubs } from "../utils/storage";
+import { useAppData } from "../context/AppDataContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function OnboardingPage() {
   const navigate = useNavigate();
-  const student = getStudentProfile();
-  const [selectedClubs, setSelectedClubs] = useState(student?.clubs || []);
+  const { clubs, loadingClubs } = useAppData();
+  const { user, updateMyClubs } = useAuth();
+  const [selectedClubs, setSelectedClubs] = useState([]);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setSelectedClubs((user?.clubs || []).map((club) => club.id));
+  }, [user]);
+
+  useEffect(() => {
+    if (user?.role === "manager" || user?.role === "admin") {
+      navigate("/feed/all", { replace: true });
+    }
+  }, [navigate, user]);
 
   const selectedCount = selectedClubs.length;
 
@@ -17,9 +29,14 @@ export default function OnboardingPage() {
     );
   }
 
-  function handleContinue() {
-    updateStudentClubs(selectedClubs);
-    navigate("/feed/all");
+  async function handleContinue() {
+    try {
+      setSaving(true);
+      await updateMyClubs(selectedClubs);
+      navigate("/feed/all");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -28,22 +45,25 @@ export default function OnboardingPage() {
         <div className="onboarding-panel__intro">
           <h1>Welcome</h1>
           <p>
-            Are you already part of any club or student group? Pick all that apply. This choice is
-            saved for your profile now, and you can change it later anytime from the
-            <strong> My Preferences</strong> section in the header.
+            Are you already part of any club or student group? Pick all that apply. This is now
+            saved to your real profile and you can change it later from Profile.
           </p>
         </div>
 
-        <div className="club-grid">
-          {clubs.map((club) => (
-            <ClubChip
-              key={club.id}
-              club={club}
-              selected={selectedClubs.includes(club.id)}
-              onClick={() => toggleClub(club.id)}
-            />
-          ))}
-        </div>
+        {loadingClubs ? (
+          <p>Loading clubs...</p>
+        ) : (
+          <div className="club-grid">
+            {clubs.map((club) => (
+              <ClubChip
+                key={club.id}
+                club={club}
+                selected={selectedClubs.includes(club.id)}
+                onClick={() => toggleClub(club.id)}
+              />
+            ))}
+          </div>
+        )}
 
         <div className="onboarding-panel__footer">
           <p>{selectedCount} club(s) selected</p>
@@ -51,8 +71,8 @@ export default function OnboardingPage() {
             <button type="button" className="ghost-button" onClick={() => navigate("/")}>
               Back
             </button>
-            <button type="button" className="primary-button" onClick={handleContinue}>
-              Continue to Clubs Feed
+            <button type="button" className="primary-button" onClick={handleContinue} disabled={saving}>
+              {saving ? "Saving..." : "Continue to Clubs Feed"}
             </button>
           </div>
         </div>

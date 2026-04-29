@@ -1,23 +1,28 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { generateCaptcha } from "../utils/captcha";
-import { getStudentProfile, hasCompletedOnboarding, saveStudentProfile } from "../utils/storage";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { user, isAuthenticated, login } = useAuth();
   const [form, setForm] = useState({
+    name: "",
     enrollment: "",
     password: "",
     captcha: ""
   });
   const [captchaText, setCaptchaText] = useState(generateCaptcha());
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (hasCompletedOnboarding()) {
-      navigate("/feed/all", { replace: true });
+    if (!isAuthenticated) {
+      return;
     }
-  }, [navigate]);
+
+    navigate(user?.onboardingComplete ? "/feed/all" : "/onboarding", { replace: true });
+  }, [isAuthenticated, navigate, user]);
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -29,7 +34,7 @@ export default function LoginPage() {
     setForm((current) => ({ ...current, captcha: "" }));
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     if (form.captcha.trim() !== captchaText) {
@@ -38,16 +43,21 @@ export default function LoginPage() {
       return;
     }
 
-    const existing = getStudentProfile();
-    const nextProfile = {
-      enrollment: form.enrollment,
-      password: form.password,
-      clubs: existing?.clubs || [],
-      onboardingComplete: Boolean(existing?.onboardingComplete)
-    };
-
-    saveStudentProfile(nextProfile);
-    navigate(nextProfile.onboardingComplete ? "/feed/all" : "/onboarding");
+    try {
+      setSubmitting(true);
+      setError("");
+      const loggedInUser = await login({
+        name: form.name,
+        enrollment: form.enrollment,
+        password: form.password
+      });
+      navigate(loggedInUser.onboardingComplete ? "/feed/all" : "/onboarding");
+    } catch (submitError) {
+      setError(submitError.message || "Login failed.");
+      refreshCaptcha();
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -57,7 +67,6 @@ export default function LoginPage() {
           <div className="login-hero__copy">
             <p className="eyebrow">Student Clubs Management Portal</p>
             <h1>Graphic Era campus life, redesigned for student clubs.</h1>
-            
           </div>
 
           <div className="portal-card">
@@ -70,8 +79,18 @@ export default function LoginPage() {
               </div>
             </div>
 
-
             <form className="portal-card__form" onSubmit={handleSubmit}>
+              <label>
+                <span>Full Name</span>
+                <input
+                  name="name"
+                  placeholder="Enter your full name"
+                  value={form.name}
+                  onChange={handleChange}
+                  required
+                />
+              </label>
+
               <label>
                 <span>Enrollment Number</span>
                 <input
@@ -117,14 +136,9 @@ export default function LoginPage() {
 
               {error && <p className="form-error">{error}</p>}
 
-              <button type="submit" className="primary-button">
-                Login
+              <button type="submit" className="primary-button" disabled={submitting}>
+                {submitting ? "Signing In..." : "Login"}
               </button>
-
-              <div className="portal-card__links">
-                <button type="button">Forgot password?</button>
-                <button type="button">Forgot ID?</button>
-              </div>
             </form>
           </div>
         </div>

@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import AppShell from "../components/AppShell";
-import { clubs } from "../data/clubs";
-import { events } from "../data/events";
-import { getStudentRegisteredEvents } from "../utils/events";
-import { getEventRegistrations, getStudentProfile } from "../utils/storage";
+import { useAuth } from "../context/AuthContext";
+import { api } from "../utils/api";
+import { normalizeEvent } from "../utils/normalizers";
 
 const WEEK_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTH_OPTIONS = Array.from({ length: 12 }, (_, monthIndex) => ({
@@ -42,12 +41,12 @@ function getDateKey(date) {
   return date.toLocaleDateString("en-CA");
 }
 
-function getRoleLabel(event) {
-  if (event.registration.participate && event.registration.volunteer) {
+function getRoleLabel(registration) {
+  if (registration.participate && registration.volunteer) {
     return "Participating + Volunteering";
   }
 
-  if (event.registration.volunteer) {
+  if (registration.volunteer) {
     return "Volunteering";
   }
 
@@ -55,8 +54,8 @@ function getRoleLabel(event) {
 }
 
 function getDayTone(dayEvents) {
-  const hasParticipating = dayEvents.some((event) => event.registration.participate);
-  const hasVolunteering = dayEvents.some((event) => event.registration.volunteer);
+  const hasParticipating = dayEvents.some((event) => event.participate);
+  const hasVolunteering = dayEvents.some((event) => event.volunteer);
 
   if (hasParticipating && hasVolunteering) {
     return "mixed";
@@ -70,38 +69,33 @@ function getDayTone(dayEvents) {
 }
 
 export default function CalendarPage() {
-  const student = getStudentProfile();
-  const myClubCount = student?.clubs?.length || 0;
-  const [now, setNow] = useState(() => new Date());
-  const [registrations, setRegistrations] = useState(() => getEventRegistrations());
+  const { user } = useAuth();
+  const [registrations, setRegistrations] = useState([]);
   const [activeMonth, setActiveMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
-  const currentMonthIndex = now.getMonth();
+  const currentMonthIndex = new Date().getMonth();
 
   useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      setNow(new Date());
-      setRegistrations(getEventRegistrations());
-    }, 30000);
-
-    return () => window.clearInterval(intervalId);
+    api.getMyRegistrations().then((response) => {
+      setRegistrations(
+        response.registrations.map((registration) => ({
+          ...registration,
+          event: normalizeEvent(registration.event)
+        }))
+      );
+    });
   }, []);
-
-  const calendarEvents = useMemo(
-    () => getStudentRegisteredEvents(events, registrations, now),
-    [now, registrations]
-  );
 
   const eventsByDate = useMemo(
     () =>
-      calendarEvents.reduce((grouped, event) => {
-        const key = getDateKey(new Date(event.startDate));
+      registrations.reduce((grouped, registration) => {
+        const key = getDateKey(new Date(registration.event.startDate));
         if (!grouped[key]) {
           grouped[key] = [];
         }
-        grouped[key].push(event);
+        grouped[key].push(registration);
         return grouped;
       }, {}),
-    [calendarEvents]
+    [registrations]
   );
 
   const monthCells = useMemo(() => getMonthGrid(activeMonth), [activeMonth]);
@@ -109,9 +103,10 @@ export default function CalendarPage() {
     month: "long",
     year: "numeric"
   });
+  const todayKey = getDateKey(new Date());
 
   return (
-    <AppShell myClubCount={myClubCount}>
+    <AppShell myClubCount={user?.clubs?.length || 0}>
       <section className="calendar-page">
         <div className="calendar-board">
           <div className="calendar-board__header">
@@ -181,14 +176,11 @@ export default function CalendarPage() {
 
               const dateKey = getDateKey(date);
               const dayEvents = eventsByDate[dateKey] || [];
-              const isToday = dateKey === getDateKey(now);
+              const isToday = dateKey === todayKey;
               const tone = dayEvents.length > 0 ? getDayTone(dayEvents) : "";
 
               return (
-                <div
-                  key={dateKey}
-                  className={`calendar-grid__cell ${isToday ? "calendar-grid__cell--today" : ""}`}
-                >
+                <div key={dateKey} className={`calendar-grid__cell ${isToday ? "calendar-grid__cell--today" : ""}`}>
                   <div
                     className={`calendar-grid__date ${tone ? `calendar-grid__date--${tone}` : ""}`}
                     tabIndex={dayEvents.length > 0 ? 0 : -1}
@@ -197,15 +189,12 @@ export default function CalendarPage() {
                     {date.getDate()}
                     {dayEvents.length > 0 ? (
                       <div className="calendar-grid__tooltip">
-                        {dayEvents.map((event) => {
-                          const club = clubs.find((item) => item.id === event.clubId);
-                          return (
-                            <div key={event.id} className="calendar-grid__tooltip-item">
-                              <strong>{club?.name || event.title}</strong>
-                              <span>{getRoleLabel(event)}</span>
-                            </div>
-                          );
-                        })}
+                        {dayEvents.map((registration) => (
+                          <div key={registration.id} className="calendar-grid__tooltip-item">
+                            <strong>{registration.event.club?.name || registration.event.title}</strong>
+                            <span>{getRoleLabel(registration)}</span>
+                          </div>
+                        ))}
                       </div>
                     ) : null}
                   </div>

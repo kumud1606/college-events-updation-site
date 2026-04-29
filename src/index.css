@@ -608,6 +608,26 @@ img {
   gap: 1rem;
 }
 
+.manager-dashboard-head {
+  padding: 1.4rem 1.6rem;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top right, rgba(16, 158, 231, 0.18), transparent 28%),
+    rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(15, 52, 84, 0.08);
+  box-shadow: 0 20px 45px rgba(17, 41, 65, 0.08);
+  backdrop-filter: blur(14px);
+}
+
+.manager-dashboard-head h1 {
+  margin: 0;
+}
+
+.manager-dashboard-head p:last-child {
+  margin-bottom: 0;
+  color: #536271;
+}
+
 .event-filter-bar {
   display: flex;
   flex-wrap: wrap;
@@ -661,6 +681,283 @@ img {
   justify-items: center;
 }
 
+.club-preview-card {
+  width: min(100%, 760px);
+  padding: 1rem 1.15rem;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(15, 52, 84, 0.08);
+  box-shadow: 0 18px 42px rgba(17, 41, 65, 0.08);
+}
+
+.club-preview-card__header {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.club-preview-card__header h2 {
+  margin: 0;
+}
+
+.club-preview-card__badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: #ffffff;
+  font-weight: 800;
+  flex: 0 0 auto;
+}
+
+.club-preview-card__badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.club-preview-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  color: #4f6272;
+  font-weight: 700;
+}
+
+.club-preview-card__link {
+  display: inline-block;
+  margin-top: 0.7rem;
+  color: #0f6aa9;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.club-preview-card__link:hover {
+  text-decoration: underline;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 22, 34, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  z-index: 40;
+}
+
+.modal-card {
+  width: min(100%, 720px);
+  max-height: calc(100vh - 3rem);
+  overflow: auto;
+  padding: 1.5rem;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(15, 52, 84, 0.08);
+  box-shadow: 0 28px 70px rgba(17, 41, 65, 0.18);
+}
+
+.manager-modal__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.manager-modal__header h2 {
+  margin: 0;
+}
+
+.manager-student-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.manager-student-card {
+  display: grid;
+  gap: 0.2rem;
+  padding: 1rem 1.1rem;
+  border-radius: 20px;
+  background: #f7fbff;
+  border: 1px solid rgba(15, 52, 84, 0.08);
+}
+
+.manager-student-card strong {
+  color: #173047;
+}
+
+.manager-student-card span {
+  color: #5b6d7d;
+}
+
+.manager-post-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.manager-post-form label {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.manager-post-form span {
+  font-weight: 700;
+  color: #16324a;
+}
+
+.manager-post-form input,
+.manager-post-form textarea,
+.manager-post-form select {
+  width: 100%;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(14, 48, 73, 0.16);
+  background: rgba(248, 251, 255, 0.92);
+  color: #0d2437;
+}
+
+.manager-post-form textarea {
+  resize: vertical;
+}
+
+.manager-post-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.club-detail-hero {
+  background:
+    radial-gradient(circle at top right, rgba(20, 102, 191, 0.18), transparent 28%),
+    rgba(255, 255, 255, 0.82);
+}
+
+.club-detail-hero__top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.club-detail-hero__badge {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: #ffffff;
+  font-weight: 800;
+  flex: 0 0 auto;
+}
+
+.club-detail-hero__badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.teacher-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.teacher-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  background: #edf5ff;
+  color: #1f4f8f;
+  font-weight: 700;
+}
+
+.notice-board-page {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  gap: 1rem;
+}
+
+.notice-board-hero {
+  padding: 1.5rem 1.7rem;
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 166, 166, 0.24), transparent 26%),
+    linear-gradient(135deg, #fff3f3, #ffdada);
+  border: 1px solid rgba(167, 20, 20, 0.14);
+  box-shadow: 0 24px 60px rgba(133, 21, 21, 0.12);
+}
+
+.notice-board-hero h1 {
+  margin: 0;
+  color: #861313;
+}
+
+.notice-board-hero p:last-child {
+  margin-bottom: 0;
+  color: #6f2a2a;
+}
+
+.notice-board-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.notice-card {
+  padding: 1.25rem 1.4rem;
+  border-radius: 26px;
+  border: 1px solid rgba(167, 20, 20, 0.14);
+  background: rgba(255, 247, 247, 0.92);
+  box-shadow: 0 18px 42px rgba(133, 21, 21, 0.08);
+}
+
+.notice-card--urgent {
+  background: linear-gradient(135deg, #ffe1e1, #ffcfcf);
+}
+
+.notice-card--important {
+  background: linear-gradient(135deg, #fff0f0, #ffe5e5);
+}
+
+.notice-card__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.notice-card__top h2 {
+  margin: 0;
+  color: #8a1010;
+}
+
+.notice-card__audience {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: #c71317;
+  color: #ffffff;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.event-action-button--delete {
+  background: #fff1f1;
+  color: #9d1010;
+  border-color: rgba(157, 16, 16, 0.18);
+}
+
 .event-card {
   width: min(100%, 760px);
   overflow: hidden;
@@ -671,6 +968,16 @@ img {
   align-items: center;
   gap: 0.9rem;
   padding: 1rem 1.2rem;
+}
+
+.event-card__club-link,
+.event-card__club-name-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.event-card__club-name-link:hover {
+  text-decoration: underline;
 }
 
 .event-card__header h3 {
@@ -1541,6 +1848,78 @@ img {
   background: linear-gradient(135deg, rgba(35, 62, 96, 0.96), rgba(22, 40, 62, 0.96));
 }
 
+:root[data-theme="dark"] .manager-dashboard-head,
+:root[data-theme="dark"] .modal-card {
+  background: rgba(16, 28, 43, 0.95);
+  border-color: rgba(141, 176, 214, 0.14);
+}
+
+:root[data-theme="dark"] .manager-dashboard-head p:last-child,
+:root[data-theme="dark"] .manager-student-card span {
+  color: #a9bfd6;
+}
+
+:root[data-theme="dark"] .manager-student-card {
+  background: rgba(23, 39, 58, 0.96);
+  border-color: rgba(141, 176, 214, 0.14);
+}
+
+:root[data-theme="dark"] .manager-student-card strong {
+  color: #eef6ff;
+}
+
+:root[data-theme="dark"] .manager-post-form span {
+  color: #dbe9f7;
+}
+
+:root[data-theme="dark"] .manager-post-form input,
+:root[data-theme="dark"] .manager-post-form textarea,
+:root[data-theme="dark"] .manager-post-form select {
+  background: rgba(21, 36, 55, 0.96);
+  border-color: rgba(141, 176, 214, 0.16);
+  color: #eef6ff;
+}
+
+:root[data-theme="dark"] .event-action-button--delete {
+  background: rgba(92, 18, 18, 0.96);
+  color: #ffd6d6;
+  border-color: rgba(240, 112, 112, 0.24);
+}
+
+:root[data-theme="dark"] .notice-board-hero,
+:root[data-theme="dark"] .notice-card {
+  background: rgba(58, 17, 17, 0.95);
+  border-color: rgba(255, 154, 154, 0.16);
+}
+
+:root[data-theme="dark"] .notice-board-hero h1,
+:root[data-theme="dark"] .notice-card__top h2 {
+  color: #ffd6d6;
+}
+
+:root[data-theme="dark"] .teacher-pill {
+  background: rgba(20, 54, 92, 0.96);
+  color: #d7ebff;
+}
+
+:root[data-theme="dark"] .club-preview-card {
+  background: rgba(16, 28, 43, 0.95);
+  border-color: rgba(141, 176, 214, 0.14);
+}
+
+:root[data-theme="dark"] .club-preview-card__meta {
+  color: #a9bfd6;
+}
+
+:root[data-theme="dark"] .club-preview-card__link {
+  color: #83ccff;
+}
+
+:root[data-theme="dark"] .notice-board-hero p:last-child,
+:root[data-theme="dark"] .notice-card p {
+  color: #f1c1c1;
+}
+
 :root[data-theme="dark"] .primary-button {
   box-shadow: 0 10px 30px rgba(16, 133, 199, 0.35);
 }
@@ -1727,5 +2106,13 @@ img {
   .event-action-button {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .manager-post-form__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-grid {
+    grid-template-columns: 1fr;
   }
 }

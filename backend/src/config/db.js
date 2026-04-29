@@ -7,12 +7,7 @@ export default async function connectDatabase() {
     return mongoose.connection;
   }
 
-  const mongoUri = process.env.MONGODB_URI;
-
-  if (!mongoUri) {
-    console.warn("MONGODB_URI is not set yet. Backend will start without a database connection.");
-    return null;
-  }
+  const mongoUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/college-clubs";
 
   await mongoose.connect(mongoUri);
   isConnected = true;

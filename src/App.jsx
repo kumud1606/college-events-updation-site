@@ -4,21 +4,38 @@ import OnboardingPage from "./pages/OnboardingPage";
 import FeedPage from "./pages/FeedPage";
 import CalendarPage from "./pages/CalendarPage";
 import CertificatesPage from "./pages/CertificatesPage";
-import PlaceholderPage from "./pages/PlaceholderPage";
 import ProfilePage from "./pages/ProfilePage";
 import RegistrationsPage from "./pages/RegistrationsPage";
-import { getStudentProfile, hasCompletedOnboarding } from "./utils/storage";
+import ClubsPage from "./pages/ClubsPage";
+import ClubDetailPage from "./pages/ClubDetailPage";
+import ManagerPostsPage from "./pages/ManagerPostsPage";
+import ManagerClubPage from "./pages/ManagerClubPage";
+import NoticeBoardPage from "./pages/NoticeBoardPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
+import { useAuth } from "./context/AuthContext";
 
 function ProtectedRoute({ children }) {
-  return getStudentProfile() ? children : <Navigate to="/" replace />;
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return null;
+  }
+
+  return isAuthenticated ? children : <Navigate to="/" replace />;
 }
 
 function OnboardingRoute() {
-  if (!getStudentProfile()) {
+  const { user, isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 
-  if (hasCompletedOnboarding()) {
+  if (user?.onboardingComplete) {
     return <Navigate to="/feed/all" replace />;
   }
 
@@ -43,11 +60,15 @@ export default function App() {
         path="/clubs"
         element={
           <ProtectedRoute>
-            <PlaceholderPage
-              title="Club Directory"
-              subtitle="Browse every student club as its own organized section."
-              description="This page can later list full club profiles, coordinators, joining rules, and upcoming events."
-            />
+            <ClubsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/clubs/:slug"
+        element={
+          <ProtectedRoute>
+            <ClubDetailPage />
           </ProtectedRoute>
         }
       />
@@ -80,6 +101,38 @@ export default function App() {
         element={
           <ProtectedRoute>
             <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/manager/posts"
+        element={
+          <ProtectedRoute>
+            <ManagerPostsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/manager/club"
+        element={
+          <ProtectedRoute>
+            <ManagerClubPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <AdminDashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notice-board"
+        element={
+          <ProtectedRoute>
+            <NoticeBoardPage />
           </ProtectedRoute>
         }
       />

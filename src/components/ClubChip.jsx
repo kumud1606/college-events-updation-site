@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { getClubBadge } from "../utils/normalizers";
 
 export default function ClubChip({ club, selected, onClick, compact = false, href }) {
   const className = `club-chip ${selected ? "selected" : ""} ${compact ? "compact" : ""}`;
@@ -6,7 +7,15 @@ export default function ClubChip({ club, selected, onClick, compact = false, hre
   const content = (
     <>
       <span className="club-chip__badge">
-        {club.logo ? <img className="club-chip__badge-image" src={club.logo} alt={`${club.name} logo`} /> : club.icon}
+        {club.logo || club.logoUrl ? (
+          <img
+            className="club-chip__badge-image"
+            src={club.logo || club.logoUrl}
+            alt={`${club.name} logo`}
+          />
+        ) : (
+          club.icon || getClubBadge(club)
+        )}
       </span>
       <span>
         <strong>{club.name}</strong>
@@ -24,7 +33,7 @@ export default function ClubChip({ club, selected, onClick, compact = false, hre
   }
 
   return (
-    <button type="button" className={className} onClick={onClick} style={style}>
+    <button type="button" className={className} onClick={onClick} style={style} disabled={!onClick}>
       {content}
     </button>
   );

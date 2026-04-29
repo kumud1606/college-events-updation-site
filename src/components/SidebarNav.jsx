@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { clearStudentProfile } from "../utils/storage";
+import { useAuth } from "../context/AuthContext";
 
 const calendarIcon = `data:image/svg+xml;utf8,${encodeURIComponent(`
   <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
@@ -90,6 +90,32 @@ const certificatesIcon = `data:image/svg+xml;utf8,${encodeURIComponent(`
   </svg>
 `)}`;
 
+const createPostIcon = `data:image/svg+xml;utf8,${encodeURIComponent(`
+  <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+    <rect width="96" height="96" rx="48" fill="#ffffff"/>
+    <circle cx="48" cy="48" r="26" fill="#0d6f76"/>
+    <path d="M48 34v28M34 48h28" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+  </svg>
+`)}`;
+
+const clubInfoIcon = `data:image/svg+xml;utf8,${encodeURIComponent(`
+  <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+    <rect width="96" height="96" rx="48" fill="#ffffff"/>
+    <circle cx="48" cy="48" r="26" fill="#1466bf"/>
+    <path d="M48 32h.01M40 44h16M40 52h16M40 60h10" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+  </svg>
+`)}`;
+
+const noticeBoardIcon = `data:image/svg+xml;utf8,${encodeURIComponent(`
+  <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+    <rect width="96" height="96" rx="48" fill="#ffffff"/>
+    <rect x="24" y="20" width="48" height="56" rx="8" fill="#c71317"/>
+    <rect x="32" y="31" width="32" height="5" rx="2.5" fill="#ffffff"/>
+    <rect x="32" y="43" width="24" height="5" rx="2.5" fill="#ffffff"/>
+    <rect x="32" y="55" width="28" height="5" rx="2.5" fill="#ffffff"/>
+  </svg>
+`)}`;
+
 const profileIcon = `data:image/svg+xml;utf8,${encodeURIComponent(`
   <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
     <rect width="96" height="96" rx="48" fill="#ffffff"/>
@@ -99,20 +125,34 @@ const profileIcon = `data:image/svg+xml;utf8,${encodeURIComponent(`
   </svg>
 `)}`;
 
-const sidebarItems = [
-  { to: "/clubs", label: "Clubs", mark: "C", iconSrc: clubsIcon },
-  { to: "/calendar", label: "Calendar", mark: "D", iconSrc: calendarIcon },
-  { to: "/registrations", label: "Registrations", mark: "R", iconSrc: registrationsIcon },
-  { to: "/certificates", label: "My Certificates", mark: "T", iconSrc: certificatesIcon },
-  { to: "/profile", label: "Profile", mark: "P", iconSrc: profileIcon }
-];
-
 export default function SidebarNav() {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
+  const { logout, user } = useAuth();
+  const isManager = user?.role === "manager";
+  const isAdmin = user?.role === "admin";
+  const sidebarItems = [
+    {
+      to: isAdmin ? "/admin" : isManager ? "/feed/all" : "/clubs",
+      label: isAdmin ? "Admin" : isManager ? "Dashboard" : "Clubs",
+      mark: "C",
+      iconSrc: clubsIcon
+    },
+    ...(isManager
+      ? [
+          { to: "/manager/posts", label: "Create Post", mark: "+", iconSrc: createPostIcon },
+          { to: "/manager/club", label: "Club Info", mark: "I", iconSrc: clubInfoIcon }
+        ]
+      : []),
+    { to: "/notice-board", label: "Notice Board", mark: "N", iconSrc: noticeBoardIcon },
+    { to: "/calendar", label: "Calendar", mark: "D", iconSrc: calendarIcon },
+    { to: "/registrations", label: "Registrations", mark: "R", iconSrc: registrationsIcon },
+    { to: "/certificates", label: "My Certificates", mark: "T", iconSrc: certificatesIcon },
+    { to: "/profile", label: "Profile", mark: "P", iconSrc: profileIcon }
+  ];
 
   function handleLogout() {
-    clearStudentProfile();
+    logout();
     navigate("/", { replace: true });
   }
 

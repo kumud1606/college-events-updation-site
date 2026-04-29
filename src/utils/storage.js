@@ -1,90 +1,29 @@
-const STUDENT_KEY = "geu-clubs-student";
-const EVENT_REGISTRATIONS_KEY = "geu-clubs-registrations";
-const CERTIFICATE_DOWNLOADS_KEY = "geu-clubs-certificate-downloads";
+const AUTH_TOKEN_KEY = "geu-clubs-auth-token";
+const AUTH_USER_KEY = "geu-clubs-auth-user";
 const THEME_KEY = "geu-clubs-theme";
 
-export function getStudentProfile() {
-  const raw = window.localStorage.getItem(STUDENT_KEY);
+export function getAuthToken() {
+  return window.localStorage.getItem(AUTH_TOKEN_KEY);
+}
+
+export function saveAuthSession({ token, user }) {
+  if (token) {
+    window.localStorage.setItem(AUTH_TOKEN_KEY, token);
+  }
+
+  if (user) {
+    window.localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+  }
+}
+
+export function getStoredUser() {
+  const raw = window.localStorage.getItem(AUTH_USER_KEY);
   return raw ? JSON.parse(raw) : null;
 }
 
-export function saveStudentProfile(profile) {
-  window.localStorage.setItem(STUDENT_KEY, JSON.stringify(profile));
-}
-
-export function hasCompletedOnboarding() {
-  const current = getStudentProfile();
-  return Boolean(current?.onboardingComplete);
-}
-
-export function updateStudentClubs(clubs) {
-  const current = getStudentProfile() || {};
-  saveStudentProfile({ ...current, clubs, onboardingComplete: true });
-}
-
-export function clearStudentProfile() {
-  window.localStorage.removeItem(STUDENT_KEY);
-}
-
-export function getEventRegistrations() {
-  const raw = window.localStorage.getItem(EVENT_REGISTRATIONS_KEY);
-  const parsed = raw ? JSON.parse(raw) : {};
-
-  return Object.fromEntries(
-    Object.entries(parsed).map(([eventId, registration]) => [
-      eventId,
-      {
-        participate:
-          typeof registration.participate === "boolean"
-            ? { active: registration.participate, registeredAt: null }
-            : registration.participate || { active: false, registeredAt: null },
-        volunteer:
-          typeof registration.volunteer === "boolean"
-            ? { active: registration.volunteer, registeredAt: null }
-            : registration.volunteer || { active: false, registeredAt: null }
-      }
-    ])
-  );
-}
-
-export function toggleEventRegistration(eventId, registrationType) {
-  const current = getEventRegistrations();
-  const key = String(eventId);
-  const eventRegistrations = current[key] || {};
-  const currentRegistration = eventRegistrations[registrationType] || { active: false, registeredAt: null };
-  const nextValue = !currentRegistration.active;
-  const nextRegistrations = {
-    ...current,
-    [key]: {
-      ...eventRegistrations,
-      [registrationType]: {
-        active: nextValue,
-        registeredAt: nextValue ? new Date().toISOString() : null
-      }
-    }
-  };
-
-  window.localStorage.setItem(EVENT_REGISTRATIONS_KEY, JSON.stringify(nextRegistrations));
-  return nextRegistrations;
-}
-
-export function getCertificateDownloads() {
-  const raw = window.localStorage.getItem(CERTIFICATE_DOWNLOADS_KEY);
-  return raw ? JSON.parse(raw) : {};
-}
-
-export function markCertificateDownloaded(eventId) {
-  const current = getCertificateDownloads();
-  const next = {
-    ...current,
-    [String(eventId)]: {
-      downloaded: true,
-      downloadedAt: new Date().toISOString()
-    }
-  };
-
-  window.localStorage.setItem(CERTIFICATE_DOWNLOADS_KEY, JSON.stringify(next));
-  return next;
+export function clearAuthSession() {
+  window.localStorage.removeItem(AUTH_TOKEN_KEY);
+  window.localStorage.removeItem(AUTH_USER_KEY);
 }
 
 export function getSavedTheme() {

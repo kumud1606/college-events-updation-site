@@ -1,82 +1,87 @@
 import { useEffect, useMemo, useState } from "react";
 import AppShell from "../components/AppShell";
-import { clubs } from "../data/clubs";
-import { events } from "../data/events";
+import { useAuth } from "../context/AuthContext";
+import { api } from "../utils/api";
 import { downloadCertificatePdf } from "../utils/certificate";
-import { getStudentRegisteredEvents } from "../utils/events";
-import {
-  getCertificateDownloads,
-  getEventRegistrations,
-  getStudentProfile,
-  markCertificateDownloaded
-} from "../utils/storage";
+import { normalizeEvent } from "../utils/normalizers";
 
-function formatRoleLabel(event) {
-  if (event.registration.participate && event.registration.volunteer) {
-    return "Participant and Volunteer";
-  }
-
-  if (event.registration.volunteer) {
-    return "Volunteer";
-  }
-
-  return "Participant";
+function renderRoleLabel(item) {
+  return item.roleLabel || "Participant";
 }
 
 export default function CertificatesPage() {
-  const student = getStudentProfile();
-  const myClubCount = student?.clubs?.length || 0;
-  const [now, setNow] = useState(() => new Date());
-  const [registrations, setRegistrations] = useState(() => getEventRegistrations());
-  const [downloads, setDownloads] = useState(() => getCertificateDownloads());
+  const { user } = useAuth();
+  const [certificates, setCertificates] = useState([]);
+  const [registrations, setRegistrations] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      setNow(new Date());
-      setRegistrations(getEventRegistrations());
-      setDownloads(getCertificateDownloads());
-    }, 30000);
+    let isMounted = true;
 
-    return () => window.clearInterval(intervalId);
+    async function loadCertificates() {
+      const [certificatesResponse, registrationsResponse] = await Promise.all([
+        api.getCertificates(),
+        api.getMyRegistrations()
+      ]);
+
+      if (!isMounted) {
+        return;
+      }
+
+      setCertificates(
+        certificatesResponse.certificates.map((certificate) => ({
+          ...certificate,
+          event: normalizeEvent(certificate.event)
+        }))
+      );
+      setRegistrations(
+        registrationsResponse.registrations.map((registration) => ({
+          ...registration,
+          event: normalizeEvent(registration.event)
+        }))
+      );
+    }
+
+    loadCertificates()
+      .catch(() => {
+        setCertificates([]);
+      })
+      .finally(() => {
+        if (isMounted) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const registeredEvents = useMemo(
-    () => getStudentRegisteredEvents(events, registrations, now),
-    [now, registrations]
-  );
-
   const sections = useMemo(() => {
-    const downloaded = [];
-    const yetToDownload = [];
-    const yetToReceive = [];
-
-    registeredEvents.forEach((event) => {
-      const downloadState = downloads[String(event.id)];
-
-      if (event.status === "finished") {
-        if (downloadState?.downloaded) {
-          downloaded.push(event);
-        } else {
-          yetToDownload.push(event);
-        }
-      } else {
-        yetToReceive.push(event);
-      }
-    });
+    const downloaded = certificates.filter((certificate) => certificate.downloadedAt);
+    const yetToDownload = certificates.filter((certificate) => !certificate.downloadedAt);
+    const yetToReceive = registrations.filter((registration) => registration.event.status !== "finished");
 
     return { downloaded, yetToDownload, yetToReceive };
-  }, [downloads, registeredEvents]);
+  }, [certificates, registrations]);
 
-  function handleDownload(event) {
+  async function handleDownload(certificate) {
     downloadCertificatePdf({
-      studentName: student?.enrollment || "Graphic Era Student",
-      eventTitle: event.title,
-      roleLabel: formatRoleLabel(event),
-      venue: event.venue,
-      dateLabel: event.date
+      studentName: user?.name || user?.enrollment || "Graphic Era Student",
+      clubName: certificate.event.club?.name || "Graphic Era Club",
+      eventTitle: certificate.event.title,
+      roleLabel: renderRoleLabel(certificate),
+      venue: certificate.event.venue,
+      dateLabel: certificate.event.date
     });
 
-    setDownloads(markCertificateDownloaded(event.id));
+    await api.markCertificateDownloaded(certificate.id);
+
+    setCertificates((current) =>
+      current.map((item) =>
+        item.id === certificate.id ? { ...item, downloadedAt: new Date().toISOString() } : item
+      )
+    );
   }
 
   function renderCertificateList(items, emptyText, showButton) {
@@ -86,46 +91,41 @@ export default function CertificatesPage() {
 
     return (
       <div className="certificate-list">
-        {items.map((event, index) => {
-          const club = clubs.find((item) => item.id === event.clubId);
-          return (
-            <article
-              key={event.id}
-              className="certificate-card"
-              style={{ animationDelay: `${index * 80}ms` }}
-            >
-              <div className="certificate-card__header">
-                <div>
-                  <p className="eyebrow">Certificate Event</p>
-                  <h3>{event.title}</h3>
-                  <p>{club?.name}</p>
-                </div>
-                <span className={`event-status event-status--${event.status}`}>{event.statusLabel}</span>
+        {items.map((item, index) => (
+          <article key={item.id} className="certificate-card" style={{ animationDelay: `${index * 80}ms` }}>
+            <div className="certificate-card__header">
+              <div>
+                <p className="eyebrow">Certificate Event</p>
+                <h3>{item.event.title}</h3>
+                <p>{item.event.club?.name}</p>
               </div>
-              <div className="certificate-card__meta">
-                <span>{event.date}</span>
-                <span>{event.venue}</span>
-                <span>{formatRoleLabel(event)}</span>
-              </div>
-              {showButton ? (
-                <button
-                  type="button"
-                  className="primary-button certificate-card__button"
-                  onClick={() => handleDownload(event)}
-                >
-                  Download Certificate PDF
-                </button>
-              ) : null}
-            </article>
-          );
-        })}
+              <span className={`event-status event-status--${item.event.status}`}>{item.event.statusLabel}</span>
+            </div>
+            <div className="certificate-card__meta">
+              <span>{item.event.date}</span>
+              <span>{item.event.venue}</span>
+              <span>{renderRoleLabel(item)}</span>
+            </div>
+            {showButton ? (
+              <button
+                type="button"
+                className="primary-button certificate-card__button"
+                onClick={() => handleDownload(item)}
+              >
+                Download Certificate PDF
+              </button>
+            ) : null}
+          </article>
+        ))}
       </div>
     );
   }
 
   return (
-    <AppShell myClubCount={myClubCount}>
+    <AppShell myClubCount={user?.clubs?.length || 0}>
       <section className="certificates-page">
+        {loading ? <p>Loading certificates...</p> : null}
+
         <section className="certificate-section certificate-section--downloaded">
           <div className="certificate-section__heading">
             <h2>Downloaded</h2>
@@ -147,7 +147,11 @@ export default function CertificatesPage() {
             <h2>Yet to Receive</h2>
             <span>{sections.yetToReceive.length}</span>
           </div>
-          {renderCertificateList(sections.yetToReceive, "No upcoming or ongoing certificates are pending.", false)}
+          {renderCertificateList(
+            sections.yetToReceive,
+            "No upcoming or ongoing certificates are pending.",
+            false
+          )}
         </section>
       </section>
     </AppShell>
