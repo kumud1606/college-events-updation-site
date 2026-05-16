@@ -1,4 +1,4 @@
-<img width="786" height="431" alt="image" src="https://github.com/user-attachments/assets/a9de0c62-0ffb-4170-8acc-156e6c6b23fb" /># College Clubs Frontend
+# College Clubs Frontend
 
 This is a React + Vite frontend for a college clubs website project.
 
